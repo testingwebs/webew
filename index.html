@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SYSTEM INTRUSION DETECTED</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; overflow: hidden; }
+        body { 
+            background: #000; 
+            font-family: 'Courier New', monospace;
+            cursor: none;
+        }
+        #matrix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .virus-scanner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0f0;
+            text-align: center;
+            z-index: 2;
+            text-shadow: 0 0 10px #0f0;
+        }
+        .scanner-text {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            animation: glitch 0.3s infinite;
+        }
+        .progress-bar {
+            width: 500px;
+            height: 30px;
+            border: 2px solid #0f0;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #f00;
+            animation: progress 10s linear forwards;
+        }
+        .file-list {
+            text-align: left;
+            margin-top: 30px;
+            height: 200px;
+            overflow-y: scroll;
+            background: rgba(0,30,0,0.5);
+            padding: 10px;
+        }
+        .file-list::-webkit-scrollbar { width: 0; }
+        .popup {
+            position: absolute;
+            background: #f00;
+            color: #ff0;
+            border: 3px solid #000;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 0 20px #f00;
+            cursor: move;
+            z-index: 100;
+            transform: rotate(5deg);
+        }
+        .bsod {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0000AA;
+            color: #fff;
+            padding: 50px;
+            z-index: 999;
+            display: none;
+            font-family: 'Lucida Console', monospace;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); text-shadow: 5px -5px 0 #f0f; }
+            40% { transform: translate(5px, -5px); text-shadow: -5px 5px 0 #0ff; }
+            60% { transform: translate(-3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+        @keyframes progress {
+            to { width: 100%; }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    
+    <div class="virus-scanner">
+        <div class="scanner-text">CRITICAL SYSTEM INFECTION DETECTED</div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+        <div class="file-list" id="fileList">
+            <!-- Files will be added here by JS -->
+        </div>
+        <div style="margin-top: 20px; font-size: 1.5rem;">
+            > TERMINATE PROCESS? [Y/N]
+        </div>
+    </div>
+
+    <div class="bsod" id="bsod">
+        <div style="font-size: 3rem; margin-bottom: 30px;">:-(</div>
+        <div style="font-size: 1.5rem; line-height: 2;">
+            Your PC ran into a problem and needs to restart.<br>
+            We're just collecting some error info, and then we'll restart for you.<br><br>
+            STOP CODE: VIRUS_OVERLOAD_ERROR<br><br>
+            <div id="bsodProgress">0% complete</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== MATRIX RAIN EFFECT =====
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const chars = katakana + latin + nums;
+        
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = `${fontSize}px monospace`;
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        // ===== SYSTEM INFECTION SIMULATION =====
+        const criticalFiles = [
+            "C:/Windows/System32/kernel32.dll [INFECTED]",
+            "C:/Windows/explorer.exe [BACKDOOR INSTALLED]",
+            "C:/Users/Admin/Documents/passwords.txt [EXFILTRATED]",
+            "MBR Sector [OVERWRITTEN]",
+            "RAM Modules [MEMORY SCRAPING ACTIVE]",
+            "GPU BIOS [CRYPTOMINER INJECTED]",
+            "Network Stack [DATA EXFILTRATION]",
+            "Boot Configuration [PERSISTENCE ENABLED]"
+        ];
+        
+        const fileList = document.getElementById('fileList');
+        let fileIndex = 0;
+        
+        function addInfectedFile() {
+            if (fileIndex < criticalFiles.length) {
+                const fileItem = document.createElement('div');
+                fileItem.textContent = `> ${criticalFiles[fileIndex]}`;
+                fileItem.style.color = fileIndex % 3 === 0 ? '#f00' : '#ff0';
+                fileItem.style.marginBottom = '5px';
+                fileList.appendChild(fileItem);
+                fileList.scrollTop = fileList.scrollHeight;
+                fileIndex++;
+            }
+        }
+        
+        // ===== POPUP GENERATOR =====
+        const messages = [
+            "YOUR FILES ARE BEING ENCRYPTED",
+            "BITCOIN WALLET DRAINED",
+            "WEBCAM ACTIVATED",
+            "PASSWORD COMPROMISED",
+            "SYSTEM INTEGRITY FAILURE",
+            "CONNECTING TO COMMAND SERVER",
+            "EXFILTRATING SENSITIVE DATA",
+            "DEPLOYING RANSOMWARE PAYLOAD"
+        ];
+        
+        function createPopup() {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.textContent = messages[Math.floor(Math.random() * messages.length)];
+            popup.style.left = `${Math.random() * 80}%`;
+            popup.style.top = `${Math.random() * 80}%`;
+            popup.style.fontSize = `${Math.random() * 20 + 20}px`;
+            popup.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            
+            document.body.appendChild(popup);
+            
+            // Drag functionality
+            let offsetX, offsetY;
+            popup.onmousedown = function(e) {
+                offsetX = e.clientX - popup.getBoundingClientRect().left;
+                offsetY = e.clientY - popup.getBoundingClientRect().top;
+                document.onmousemove = movePopup;
+                document.onmouseup = stopDrag;
+            };
+            
+            function movePopup(e) {
+                popup.style.left = `${e.clientX - offsetX}px`;
+                popup.style.top = `${e.clientY - offsetY}px`;
+            }
+            
+            function stopDrag() {
+                document.onmousemove = null;
+                document.onmouseup = null;
+            }
+            
+            // Auto-remove after delay
+            setTimeout(() => {
+                popup.style.transition = 'all 1s';
+                popup.style.opacity = '0';
+                popup.style.transform = 'scale(0) rotate(360deg)';
+                setTimeout(() => popup.remove(), 1000);
+            }, 5000);
+        }
+        
+        // ===== BSOD TRIGGER =====
+        function triggerBSOD() {
+            const bsod = document.getElementById('bsod');
+            bsod.style.display = 'block';
+            
+            let progress = 0;
+            const bsodProgress = document.getElementById('bsodProgress');
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    setTimeout(() => {
+                        bsod.innerHTML = '<div style="text-align:center;font-size:3rem;">JUST KIDDING!<br><br><span style="font-size:1rem">This was a harmless simulation</span></div>';
+                    }, 2000);
+                }
+                bsodProgress.textContent = `${Math.min(100, Math.floor(progress))}% complete`;
+            }, 200);
+        }
+        
+        // ===== MAIN EXECUTION =====
+        // Initialize
+        setInterval(drawMatrix, 50);
+        
+        // Add infected files gradually
+        const fileInterval = setInterval(addInfectedFile, 1500);
+        
+        // Generate popups
+        const popupInterval = setInterval(createPopup, 3000);
+        
+        // Trigger BSOD after 30 seconds
+        setTimeout(() => {
+            clearInterval(fileInterval);
+            clearInterval(popupInterval);
+            triggerBSOD();
+        }, 30000);
+        
+        // Add key listener for fake termination
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'y') {
+                document.body.style.animation = 'shake 0.5s infinite';
+                document.querySelector('.scanner-text').textContent = "TERMINATION FAILED - VIRUS RESISTANT";
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
